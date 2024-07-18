@@ -4,8 +4,8 @@ import string
 from telegram import Bot
 
 # Your bot's token where you want to send the found tokens
-YOUR_BOT_TOKEN = 'YOUR_BOT_TOKEN_HERE'
-CHAT_ID = 'YOUR_CHAT_ID_HERE'
+YOUR_BOT_TOKEN = '5583773090:AAF-fazf-qderti_gq1yPf2Avk1Z3Gq7cKI'
+CHAT_ID = '5079629749'
 
 def generate_random_token():
     return ''.join(random.choices(string.ascii_letters + string.digits, k=45))
